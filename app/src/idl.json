@@ -1,0 +1,620 @@
+{
+  "address": "B6nXK6Cuxbzp8muFFhZSoJqhSAL7BeNiH2bHiwAL5zk7",
+  "metadata": {
+    "name": "model_registry",
+    "version": "0.1.0",
+    "spec": "0.1.0"
+  },
+  "instructions": [
+    {
+      "name": "initialize",
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "publish_model",
+      "discriminator": [
+        71,
+        49,
+        178,
+        147,
+        231,
+        157,
+        236,
+        45
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "model",
+          "writable": true
+        },
+        {
+          "name": "first_version",
+          "writable": true
+        },
+        {
+          "name": "publisher",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "model_name",
+          "type": "string"
+        },
+        {
+          "name": "weights_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "metadata_uri",
+          "type": "string"
+        },
+        {
+          "name": "license",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "add_version",
+      "discriminator": [
+        167,
+        42,
+        0,
+        24,
+        83,
+        109,
+        61,
+        248
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "model",
+          "writable": true
+        },
+        {
+          "name": "version",
+          "writable": true
+        },
+        {
+          "name": "publisher",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "weights_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "metadata_uri",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "update_metadata",
+      "discriminator": [
+        170,
+        182,
+        43,
+        239,
+        97,
+        78,
+        225,
+        186
+      ],
+      "accounts": [
+        {
+          "name": "model",
+          "writable": true
+        },
+        {
+          "name": "publisher",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "new_metadata_uri",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "deprecate_model",
+      "discriminator": [
+        87,
+        25,
+        141,
+        176,
+        163,
+        42,
+        135,
+        55
+      ],
+      "accounts": [
+        {
+          "name": "model",
+          "writable": true
+        },
+        {
+          "name": "publisher",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "transfer_ownership",
+      "discriminator": [
+        65,
+        177,
+        215,
+        73,
+        53,
+        45,
+        99,
+        47
+      ],
+      "accounts": [
+        {
+          "name": "model",
+          "writable": true
+        },
+        {
+          "name": "publisher",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "new_publisher",
+          "type": "pubkey"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "RegistryConfig",
+      "discriminator": [
+        23,
+        118,
+        10,
+        246,
+        173,
+        231,
+        243,
+        156
+      ]
+    },
+    {
+      "name": "Model",
+      "discriminator": [
+        152,
+        221,
+        247,
+        122,
+        185,
+        125,
+        223,
+        151
+      ]
+    },
+    {
+      "name": "ModelVersion",
+      "discriminator": [
+        22,
+        236,
+        9,
+        80,
+        24,
+        101,
+        127,
+        43
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "ModelPublished",
+      "discriminator": [55, 100, 14, 140, 117, 242, 43, 186],
+      "fields": [
+        { "name": "publisher", "type": "pubkey" },
+        { "name": "model_name", "type": "string" },
+        { "name": "weights_hash", "type": { "array": ["u8", 32] } },
+        { "name": "metadata_uri", "type": "string" },
+        { "name": "license", "type": "u8" },
+        { "name": "timestamp", "type": "i64" }
+      ]
+    },
+    {
+      "name": "VersionAdded",
+      "discriminator": [25, 7, 77, 171, 111, 178, 80, 220],
+      "fields": [
+        { "name": "model", "type": "pubkey" },
+        { "name": "publisher", "type": "pubkey" },
+        { "name": "version", "type": "u32" },
+        { "name": "weights_hash", "type": { "array": ["u8", 32] } },
+        { "name": "metadata_uri", "type": "string" },
+        { "name": "timestamp", "type": "i64" }
+      ]
+    },
+    {
+      "name": "MetadataUpdated",
+      "discriminator": [132, 36, 215, 246, 166, 90, 189, 44],
+      "fields": [
+        { "name": "model", "type": "pubkey" },
+        { "name": "publisher", "type": "pubkey" },
+        { "name": "new_metadata_uri", "type": "string" },
+        { "name": "timestamp", "type": "i64" }
+      ]
+    },
+    {
+      "name": "ModelDeprecatedEvent",
+      "discriminator": [112, 253, 200, 55, 0, 64, 149, 222],
+      "fields": [
+        { "name": "model", "type": "pubkey" },
+        { "name": "publisher", "type": "pubkey" },
+        { "name": "timestamp", "type": "i64" }
+      ]
+    },
+    {
+      "name": "OwnershipTransferred",
+      "discriminator": [172, 61, 205, 183, 250, 50, 38, 98],
+      "fields": [
+        { "name": "model", "type": "pubkey" },
+        { "name": "old_publisher", "type": "pubkey" },
+        { "name": "new_publisher", "type": "pubkey" },
+        { "name": "timestamp", "type": "i64" }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "ModelNameTooLong",
+      "msg": "Model name exceeds 64 characters"
+    },
+    {
+      "code": 6001,
+      "name": "MetadataUriTooLong",
+      "msg": "Metadata URI exceeds 128 characters"
+    },
+    {
+      "code": 6002,
+      "name": "ModelNameEmpty",
+      "msg": "Model name cannot be empty"
+    },
+    {
+      "code": 6003,
+      "name": "MetadataUriEmpty",
+      "msg": "Metadata URI cannot be empty"
+    },
+    {
+      "code": 6004,
+      "name": "UnauthorizedPublisher",
+      "msg": "Only the model publisher can perform this action"
+    },
+    {
+      "code": 6005,
+      "name": "ModelDeprecated",
+      "msg": "Model has been deprecated"
+    },
+    {
+      "code": 6006,
+      "name": "AlreadyDeprecated",
+      "msg": "Model is already deprecated"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidLicense",
+      "msg": "Invalid license type"
+    }
+  ],
+  "types": [
+    {
+      "name": "License",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "MIT"
+          },
+          {
+            "name": "Apache2"
+          },
+          {
+            "name": "GPL3"
+          },
+          {
+            "name": "CreativeCommons"
+          },
+          {
+            "name": "Custom"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Model",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "publisher",
+            "type": "pubkey"
+          },
+          {
+            "name": "model_name",
+            "type": "string"
+          },
+          {
+            "name": "weights_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "metadata_uri",
+            "type": "string"
+          },
+          {
+            "name": "license",
+            "type": {
+              "defined": {
+                "name": "License"
+              }
+            }
+          },
+          {
+            "name": "version_count",
+            "type": "u32"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "updated_at",
+            "type": "i64"
+          },
+          {
+            "name": "is_deprecated",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ModelVersion",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "model",
+            "type": "pubkey"
+          },
+          {
+            "name": "version",
+            "type": "u32"
+          },
+          {
+            "name": "weights_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "metadata_uri",
+            "type": "string"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RegistryConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_models",
+            "type": "u64"
+          },
+          {
+            "name": "total_versions",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ModelPublished",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "publisher", "type": "pubkey" },
+          { "name": "model_name", "type": "string" },
+          { "name": "weights_hash", "type": { "array": ["u8", 32] } },
+          { "name": "metadata_uri", "type": "string" },
+          { "name": "license", "type": "u8" },
+          { "name": "timestamp", "type": "i64" }
+        ]
+      }
+    },
+    {
+      "name": "VersionAdded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "model", "type": "pubkey" },
+          { "name": "publisher", "type": "pubkey" },
+          { "name": "version", "type": "u32" },
+          { "name": "weights_hash", "type": { "array": ["u8", 32] } },
+          { "name": "metadata_uri", "type": "string" },
+          { "name": "timestamp", "type": "i64" }
+        ]
+      }
+    },
+    {
+      "name": "MetadataUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "model", "type": "pubkey" },
+          { "name": "publisher", "type": "pubkey" },
+          { "name": "new_metadata_uri", "type": "string" },
+          { "name": "timestamp", "type": "i64" }
+        ]
+      }
+    },
+    {
+      "name": "ModelDeprecatedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "model", "type": "pubkey" },
+          { "name": "publisher", "type": "pubkey" },
+          { "name": "timestamp", "type": "i64" }
+        ]
+      }
+    },
+    {
+      "name": "OwnershipTransferred",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "model", "type": "pubkey" },
+          { "name": "old_publisher", "type": "pubkey" },
+          { "name": "new_publisher", "type": "pubkey" },
+          { "name": "timestamp", "type": "i64" }
+        ]
+      }
+    }
+  ]
+}
