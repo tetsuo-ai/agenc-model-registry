@@ -2,6 +2,12 @@
 
 ![AgenC Model Registry Banner](./assets/6e55571c-c0b8-401f-bd2f-c82c551caf8b.jpg)
 
+[![Solana](https://img.shields.io/badge/Solana-Devnet-9945FF?logo=solana&logoColor=white)](https://solana.com)
+[![Anchor](https://img.shields.io/badge/Anchor-0.30.1-blue)](https://www.anchor-lang.com)
+[![Arweave](https://img.shields.io/badge/Arweave-Permanent%20Storage-222326?logo=arweave&logoColor=white)](https://arweave.org)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)](https://react.dev)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
 **Program ID:** `B6nXK6Cuxbzp8muFFhZSoJqhSAL7BeNiH2bHiwAL5zk7`
 
 ## Overview
