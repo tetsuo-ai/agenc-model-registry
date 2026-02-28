@@ -1,50 +1,72 @@
-import { Link } from "react-router-dom";
-import { OnChainModel } from "../hooks/useRegistry";
+import { Link } from 'react-router-dom';
+import { OnChainModel } from '../hooks/useRegistry';
 
-const LICENSE_LABELS = ["MIT", "Apache-2.0", "GPL-3.0", "CC", "Custom"];
+interface ModelCardProps {
+  model: OnChainModel;
+}
 
-export default function ModelCard({ model }: { model: OnChainModel }) {
-  const publisherShort = `${model.publisher.toBase58().slice(0, 4)}...${model.publisher.toBase58().slice(-4)}`;
-  const timeAgo = formatTimeAgo(model.createdAt);
+const LICENSE_NAMES = ['MIT', 'Apache 2.0', 'GPL 3.0', 'Creative Commons', 'Custom'];
+
+function formatTimeAgo(timestamp: number): string {
+  const now = Date.now() / 1000;
+  const diff = now - timestamp;
+  const minutes = Math.floor(diff / 60);
+  const hours = Math.floor(diff / 3600);
+  const days = Math.floor(diff / 86400);
+
+  if (days > 0) return `${days}d ago`;
+  if (hours > 0) return `${hours}h ago`;
+  if (minutes > 0) return `${minutes}m ago`;
+  return 'just now';
+}
+
+function shortenAddress(address: string): string {
+  return `${address.slice(0, 4)}...${address.slice(-4)}`;
+}
+
+function formatHash(hash: number[]): string {
+  return hash
+    .slice(0, 8)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+export default function ModelCard({ model }: ModelCardProps) {
+  const licenseIndex = typeof model.license === 'object' ? Object.keys(model.license)[0] : 0;
+  const licenseNum = typeof licenseIndex === 'string' ? parseInt(licenseIndex) : licenseIndex;
+  const licenseName = LICENSE_NAMES[licenseNum as number] || 'Unknown';
 
   return (
     <Link
-      to={`/model/${model.address.toBase58()}`}
-      className="block border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors bg-gray-900/50"
+      to={`/model/${model.address.toString()}`}
+      className="block bg-slate-800 border border-slate-700 rounded-lg p-6 hover:border-blue-500 transition-all hover:shadow-lg hover:shadow-blue-500/20"
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <h3 className="font-semibold text-white truncate">
-            {model.modelName}
-          </h3>
-          <p className="text-sm text-gray-500 font-mono">{publisherShort}</p>
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex-1">
+          <h3 className="text-xl font-bold text-white mb-1">{model.modelName}</h3>
+          <p className="text-sm text-slate-400">
+            by {shortenAddress(model.publisher.toString())}
+          </p>
         </div>
         {model.isDeprecated && (
-          <span className="text-xs bg-red-900 text-red-300 px-2 py-0.5 rounded-full shrink-0">
-            deprecated
+          <span className="px-2 py-1 text-xs font-semibold bg-red-500/20 text-red-400 rounded">
+            Deprecated
           </span>
         )}
       </div>
 
-      <div className="flex items-center gap-3 mt-3 text-xs text-gray-500">
-        <span className="bg-gray-800 px-2 py-0.5 rounded">
-          {LICENSE_LABELS[model.license] || "Custom"}
+      <div className="flex items-center gap-4 mb-4 text-sm text-slate-400">
+        <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-medium">
+          {licenseName}
         </span>
-        <span>v{model.versionCount}</span>
-        <span>{timeAgo}</span>
+        <span>{model.versionCount} version{model.versionCount !== 1 ? 's' : ''}</span>
+        <span>{formatTimeAgo(model.createdAt)}</span>
       </div>
 
-      <div className="mt-2 text-xs text-gray-600 font-mono truncate">
-        SHA-256: {model.weightsHash.slice(0, 16)}...
+      <div className="bg-slate-900 rounded p-3 border border-slate-700">
+        <p className="text-xs text-slate-500 mb-1">Weights Hash</p>
+        <p className="font-mono text-sm text-slate-300">{formatHash(model.weightsHash)}...</p>
       </div>
     </Link>
   );
-}
-
-function formatTimeAgo(timestamp: number): string {
-  const seconds = Math.floor(Date.now() / 1000 - timestamp);
-  if (seconds < 60) return "just now";
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  return `${Math.floor(seconds / 86400)}d ago`;
 }

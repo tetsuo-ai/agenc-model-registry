@@ -3,6 +3,13 @@
 version = 4
 
 [[package]]
+name = "agenc-model-registry"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+]
+
+[[package]]
 name = "ahash"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1069,13 +1076,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "488016bfae457b036d996092f6cb448677611ce4449e970ceaf42695203f218a"
 dependencies = [
  "autocfg",
-]
-
-[[package]]
-name = "model-registry"
-version = "0.1.0"
-dependencies = [
- "anchor-lang",
 ]
 
 [[package]]

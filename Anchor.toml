@@ -5,13 +5,16 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-agenc_model_registry = "B6nXK6Cuxbzp8muFFhZSoJqhSAL7BeNiH2bHiwAL5zk7"
+agenc_model_registry = "3KyiM2oxJueFZmaUbFojSJ83pVkT1bWLiDLeUE8dJwY3"
+
+[programs.devnet]
+agenc_model_registry = "3KyiM2oxJueFZmaUbFojSJ83pVkT1bWLiDLeUE8dJwY3"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "Devnet"
 wallet = '~\.config/solana/id.json'
 
 [scripts]

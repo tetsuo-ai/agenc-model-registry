@@ -1,0 +1,358 @@
+<!doctype html>
+<html class="">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+        <meta name="description" content="Decentralized AI model registry on Solana blockchain" />
+        <meta property="og:title" content="AgenC Model Registry" />
+        <meta property="og:description" content="Publish and discover AI models on-chain with Solana and Arweave" />
+        <meta property="og:type" content="website" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" />
+        <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;1,200;1,300;1,400;1,600;1,700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                darkMode: 'class',
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            sans: ['Source Sans Pro', 'sans-serif'],
+                            mono: ['IBM Plex Mono', 'monospace'],
+                        },
+                        colors: {
+                            agenc: {
+                                50: '#eff6ff',
+                                100: '#dbeafe',
+                                200: '#bfdbfe',
+                                300: '#93c5fd',
+                                400: '#60a5fa',
+                                500: '#3b82f6',
+                                600: '#2563eb',
+                                700: '#1d4ed8',
+                                800: '#1e40af',
+                                900: '#1e3a8a',
+                                950: '#172554',
+                            }
+                        }
+                    }
+                }
+            }
+        </script>
+        <title>AgenC Model Registry</title>
+        <style>
+            body { font-family: 'Source Sans Pro', sans-serif; }
+            .card-hover:hover .card-bg { opacity: 1 !important; }
+            .card-hover:hover .arrow-icon { opacity: 1; transform: rotate(0deg); }
+            .card-hover:hover .check-icon { opacity: 0; }
+            .card-hover:hover h2 { color: inherit; }
+            .card-hover:hover .card-title-accent { filter: brightness(1.1); }
+        </style>
+    </head>
+    <body class="flex flex-col min-h-screen bg-[#060b18] text-white">
+        <div class="flex min-h-screen flex-col">
+            <!-- Header -->
+            <header class="border-b border-white/10">
+                <div class="w-full px-4 max-w-7xl mx-auto flex h-16 items-center">
+                    <div class="flex flex-1 items-center">
+                        <!-- Logo -->
+                        <a class="mr-5 flex flex-none items-center lg:mr-6" href="/">
+                            <svg class="w-7 md:mr-2" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect width="100" height="100" rx="20" fill="#3B82F6"/>
+                                <path d="M30 70L50 30L70 70H60L50 50L40 70H30Z" fill="white"/>
+                                <circle cx="50" cy="30" r="6" fill="white"/>
+                            </svg>
+                            <span class="hidden whitespace-nowrap text-lg font-bold md:block">AgenC Model Registry</span>
+                        </a>
+
+                        <!-- Search -->
+                        <div class="relative flex-1 lg:max-w-sm mr-2 sm:mr-4 md:mr-3 xl:mr-6">
+                            <input autocomplete="off" class="w-full pl-8 h-9 pr-3 border border-white/15 rounded-lg text-sm bg-white/5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Search models..." spellcheck="false" type="text" value="">
+                            <svg class="absolute left-2.5 text-gray-400 top-1/2 transform -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" width="1em" height="1em" viewBox="0 0 32 32"><path d="M30 28.59L22.45 21A11 11 0 1 0 21 22.45L28.59 30zM5 14a9 9 0 1 1 9 9a9 9 0 0 1-9-9z" fill="currentColor"></path></svg>
+                        </div>
+                    </div>
+
+                    <!-- Nav -->
+                    <nav aria-label="Main" class="ml-auto hidden lg:block">
+                        <ul class="flex items-center gap-x-1 2xl:gap-x-2">
+                            <li class="hover:text-blue-400">
+                                <a class="group flex items-center px-2 py-0.5" href="http://localhost:5173">
+                                    <svg class="mr-1.5 text-gray-400 group-hover:text-blue-500" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path class="uim-quaternary" d="M20.23 7.24L12 12L3.77 7.24a1.98 1.98 0 0 1 .7-.71L11 2.76c.62-.35 1.38-.35 2 0l6.53 3.77c.29.173.531.418.7.71z" opacity=".25" fill="currentColor"></path><path class="uim-tertiary" d="M12 12v9.5a2.09 2.09 0 0 1-.91-.21L4.5 17.48a2.003 2.003 0 0 1-1-1.73v-7.5a2.06 2.06 0 0 1 .27-1.01L12 12z" opacity=".5" fill="currentColor"></path><path class="uim-primary" d="M20.5 8.25v7.5a2.003 2.003 0 0 1-1 1.73l-6.62 3.82c-.275.13-.576.198-.88.2V12l8.23-4.76c.175.308.268.656.27 1.01z" fill="currentColor"></path></svg>
+                                    Browse Models
+                                </a>
+                            </li>
+                            <li class="hover:text-green-400">
+                                <a class="group flex items-center px-2 py-0.5" href="http://localhost:5173/publish">
+                                    <svg class="mr-1.5 text-gray-400 group-hover:text-green-500" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"></path></svg>
+                                    Publish Model
+                                </a>
+                            </li>
+                            <li class="hover:text-purple-400">
+                                <a class="group flex items-center px-2 py-0.5" href="https://explorer.solana.com/address/3KyiM2oxJueFZmaUbFojSJ83pVkT1bWLiDLeUE8dJwY3?cluster=devnet" target="_blank">
+                                    <svg class="mr-1.5 text-gray-400 group-hover:text-purple-500" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"></path></svg>
+                                    On-Chain Explorer
+                                </a>
+                            </li>
+                            <li>
+                                <hr class="h-5 w-0.5 border-none bg-white/15">
+                            </li>
+                            <li>
+                                <a href="http://localhost:5173" class="rounded-lg bg-blue-500 text-white px-4 py-1.5 text-sm font-semibold hover:bg-blue-600 transition-colors">Launch App</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="flex flex-1 flex-col">
+                <div class="max-w-5xl mx-auto w-full px-4 pb-12 pt-8 md:pb-20 md:pt-14">
+                    <!-- Title Row -->
+                    <div class="mb-6 flex items-center justify-between sm:mb-8">
+                        <h1 class="relative z-10 flex text-xl font-bold md:text-3xl">Welcome to AgenC Model Registry</h1>
+                        <a href="http://localhost:5173" class="border border-white/15 px-4 gap-2 rounded-full py-1 flex items-center text-sm hover:bg-white/10 transition-colors">
+                            <span>Launch App</span>
+                            <div>&rarr;</div>
+                        </a>
+                    </div>
+
+                    <!-- Tagline -->
+                    <div class="mb-8">
+                        <p class="text-lg text-gray-400 max-w-2xl">
+                            The decentralized AI model registry on Solana. Publish, discover, and verify AI models with blockchain-based ownership and permanent storage.
+                        </p>
+                    </div>
+
+                    <!-- Card Grid -->
+                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+
+                        <!-- Column 1 -->
+                        <div class="flex flex-col gap-5">
+
+                            <!-- Browse Models (Featured) -->
+                            <a href="http://localhost:5173" class="card-hover relative z-10 w-full overflow-hidden rounded-xl bg-white/[0.04] px-6 pb-6 pt-5 text-left transition-all duration-100 hover:bg-white/[0.08]">
+                                <div class="h-36 flex items-center justify-center mb-2">
+                                    <svg viewBox="0 0 120 100" class="h-28 opacity-60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="10" y="20" width="100" height="65" rx="8" fill="#3b82f6" opacity="0.15"/>
+                                        <rect x="20" y="30" width="80" height="10" rx="3" fill="#3b82f6" opacity="0.3"/>
+                                        <rect x="20" y="45" width="60" height="8" rx="3" fill="#3b82f6" opacity="0.2"/>
+                                        <rect x="20" y="58" width="70" height="8" rx="3" fill="#3b82f6" opacity="0.2"/>
+                                        <rect x="20" y="71" width="50" height="8" rx="3" fill="#3b82f6" opacity="0.2"/>
+                                        <circle cx="95" cy="49" r="12" fill="#3b82f6" opacity="0.3"/>
+                                        <path d="M91 49l3 3 6-6" stroke="#3b82f6" stroke-width="2" fill="none"/>
+                                    </svg>
+                                </div>
+                                <svg class="absolute text-2xl top-5 right-5 text-blue-400 transition-all duration-300" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 13 13"><path d="M5.22433 7.95134L3.91933 6.64634C3.80933 6.53634 3.67433 6.48134 3.51433 6.48134C3.35433 6.48134 3.21433 6.54134 3.09433 6.66134C2.98433 6.77134 2.92933 6.91134 2.92933 7.08134C2.92933 7.25134 2.98433 7.39134 3.09433 7.50134L4.80433 9.21134C4.91433 9.32134 5.05433 9.37634 5.22433 9.37634C5.39433 9.37634 5.53433 9.32134 5.64433 9.21134L9.04933 5.80634C9.15933 5.69634 9.21433 5.56134 9.21433 5.40134C9.21433 5.24134 9.15433 5.10134 9.03433 4.98134C8.92433 4.87134 8.78433 4.81634 8.61433 4.81634C8.44433 4.81634 8.30433 4.87134 8.19433 4.98134L5.22433 7.95134ZM6.06433 12.8713C5.23433 12.8713 4.45433 12.7137 3.72433 12.3985C2.99433 12.0837 2.35933 11.6563 1.81933 11.1163C1.27933 10.5763 0.851931 9.94134 0.537131 9.21134C0.221931 8.48134 0.0643311 7.70134 0.0643311 6.87134C0.0643311 6.04134 0.221931 5.26134 0.537131 4.53134C0.851931 3.80134 1.27933 3.16634 1.81933 2.62634C2.35933 2.08634 2.99433 1.65874 3.72433 1.34354C4.45433 1.02874 5.23433 0.871338 6.06433 0.871338C6.89433 0.871338 7.67433 1.02874 8.40433 1.34354C9.13433 1.65874 9.76933 2.08634 10.3093 2.62634C10.8493 3.16634 11.2767 3.80134 11.5915 4.53134C11.9067 5.26134 12.0643 6.04134 12.0643 6.87134C12.0643 7.70134 11.9067 8.48134 11.5915 9.21134C11.2767 9.94134 10.8493 10.5763 10.3093 11.1163C9.76933 11.6563 9.13433 12.0837 8.40433 12.3985C7.67433 12.7137 6.89433 12.8713 6.06433 12.8713Z" fill="currentColor"></path></svg>
+                                <div class="mt-2">
+                                    <h2 class="mb-1 text-2xl font-bold text-blue-400">Browse Models</h2>
+                                    <p class="text-pretty text-[22px]/7 font-semibold text-gray-300">Discover AI models published on-chain</p>
+                                </div>
+                                <div class="card-bg absolute left-1/2 top-1/2 -z-10 h-full w-full -translate-x-1/2 -translate-y-1/2 rounded-lg bg-blue-500/15 transition-all duration-500 opacity-100"></div>
+                            </a>
+
+                            <!-- Publish Model -->
+                            <a href="http://localhost:5173/publish" class="card-hover relative z-10 w-full overflow-hidden rounded-xl bg-white/[0.04] px-6 pb-6 pt-5 text-left transition-all duration-100 hover:bg-white/[0.08]">
+                                <div class="h-28 flex items-center justify-center mb-2">
+                                    <svg viewBox="0 0 120 80" class="h-20 opacity-60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="60" cy="40" r="25" fill="#10b981" opacity="0.12"/>
+                                        <circle cx="60" cy="40" r="25" stroke="#10b981" stroke-width="2" opacity="0.3"/>
+                                        <path d="M60 25V55M45 40H75" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                                <svg class="absolute text-2xl top-5 right-5 text-gray-400 -rotate-45 transition-all duration-300 arrow-icon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 32 32"><path d="M18 6l-1.4 1.4l7.5 7.6H3v2h21.1l-7.5 7.6L18 26l10-10z" fill="currentColor"></path></svg>
+                                <div class="mt-2">
+                                    <h2 class="mb-1 text-2xl font-bold">Publish Model</h2>
+                                    <p class="text-pretty text-[22px]/7 font-semibold text-gray-400 opacity-80">Upload your AI model to the registry</p>
+                                </div>
+                                <div class="card-bg absolute left-1/2 top-1/2 -z-10 h-full w-full -translate-x-1/2 -translate-y-1/2 rounded-lg bg-emerald-500/15 transition-all duration-500 opacity-0"></div>
+                            </a>
+
+                            <!-- Solana On-Chain -->
+                            <a href="https://explorer.solana.com/address/3KyiM2oxJueFZmaUbFojSJ83pVkT1bWLiDLeUE8dJwY3?cluster=devnet" target="_blank" class="card-hover relative z-10 w-full overflow-hidden rounded-xl bg-white/[0.04] px-6 pb-6 pt-5 text-left transition-all duration-100 hover:bg-white/[0.08]">
+                                <div class="h-36 flex items-center justify-center mb-2">
+                                    <svg viewBox="0 0 120 100" class="h-28 opacity-60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M30 55L50 35H90L70 55H30Z" fill="#8b5cf6" opacity="0.2"/>
+                                        <path d="M30 40L50 20H90L70 40H30Z" fill="#8b5cf6" opacity="0.15"/>
+                                        <path d="M30 65L50 50H90L70 65H30Z" fill="#8b5cf6" opacity="0.25"/>
+                                    </svg>
+                                </div>
+                                <svg class="absolute text-2xl top-5 right-5 text-gray-400 -rotate-45 transition-all duration-300 arrow-icon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 32 32"><path d="M18 6l-1.4 1.4l7.5 7.6H3v2h21.1l-7.5 7.6L18 26l10-10z" fill="currentColor"></path></svg>
+                                <div class="mt-2">
+                                    <h2 class="mb-1 text-2xl font-bold">Solana Explorer</h2>
+                                    <p class="text-pretty text-[22px]/7 font-semibold text-gray-400 opacity-80">View the registry program on-chain</p>
+                                </div>
+                                <div class="card-bg absolute left-1/2 top-1/2 -z-10 h-full w-full -translate-x-1/2 -translate-y-1/2 rounded-lg bg-purple-500/15 transition-all duration-500 opacity-0"></div>
+                            </a>
+
+                        </div>
+
+                        <!-- Column 2 -->
+                        <div class="flex flex-col gap-5">
+
+                            <!-- Arweave Storage -->
+                            <a href="#storage" class="card-hover relative z-10 w-full overflow-hidden rounded-xl bg-white/[0.04] px-6 pb-6 pt-5 text-left transition-all duration-100 hover:bg-white/[0.08]">
+                                <div class="h-28 flex items-center justify-center mb-2">
+                                    <svg viewBox="0 0 120 80" class="h-20 opacity-60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M60 10L95 30V60L60 75L25 60V30L60 10Z" fill="#10b981" opacity="0.15"/>
+                                        <path d="M60 10L95 30V60L60 75L25 60V30L60 10Z" stroke="#10b981" stroke-width="2" opacity="0.4"/>
+                                        <path d="M60 10V75M25 30L60 45L95 30" stroke="#10b981" stroke-width="1.5" opacity="0.3"/>
+                                    </svg>
+                                </div>
+                                <svg class="absolute text-2xl top-5 right-5 text-gray-400 -rotate-45 transition-all duration-300 arrow-icon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 32 32"><path d="M18 6l-1.4 1.4l7.5 7.6H3v2h21.1l-7.5 7.6L18 26l10-10z" fill="currentColor"></path></svg>
+                                <div class="mt-2">
+                                    <h2 class="mb-1 text-2xl font-bold">Permanent Storage</h2>
+                                    <p class="text-pretty text-[22px]/7 font-semibold text-gray-400 opacity-80">Model metadata on Arweave</p>
+                                </div>
+                                <div class="card-bg absolute left-1/2 top-1/2 -z-10 h-full w-full -translate-x-1/2 -translate-y-1/2 rounded-lg bg-emerald-500/15 transition-all duration-500 opacity-0"></div>
+                            </a>
+
+                            <!-- SHA-256 Verification -->
+                            <a href="#verify" class="card-hover relative z-10 w-full overflow-hidden rounded-xl bg-white/[0.04] px-6 pb-6 pt-5 text-left transition-all duration-100 hover:bg-white/[0.08]">
+                                <div class="h-36 flex items-center justify-center mb-2">
+                                    <svg viewBox="0 0 120 100" class="h-28 opacity-60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="60" cy="50" r="30" fill="#06b6d4" opacity="0.12"/>
+                                        <circle cx="60" cy="50" r="30" stroke="#06b6d4" stroke-width="2" opacity="0.3"/>
+                                        <path d="M50 50l5 5 15-15" stroke="#06b6d4" stroke-width="3" fill="none" stroke-linecap="round"/>
+                                        <circle cx="35" cy="35" r="8" stroke="#06b6d4" stroke-width="1.5" opacity="0.2" fill="none"/>
+                                        <circle cx="85" cy="65" r="8" stroke="#06b6d4" stroke-width="1.5" opacity="0.2" fill="none"/>
+                                    </svg>
+                                </div>
+                                <svg class="absolute text-2xl top-5 right-5 text-gray-400 -rotate-45 transition-all duration-300 arrow-icon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 32 32"><path d="M18 6l-1.4 1.4l7.5 7.6H3v2h21.1l-7.5 7.6L18 26l10-10z" fill="currentColor"></path></svg>
+                                <div class="mt-2">
+                                    <h2 class="mb-1 text-2xl font-bold">SHA-256 Verification</h2>
+                                    <p class="text-pretty text-[22px]/7 font-semibold text-gray-400 opacity-80">Verify model integrity with cryptographic hashes</p>
+                                </div>
+                                <div class="card-bg absolute left-1/2 top-1/2 -z-10 h-full w-full -translate-x-1/2 -translate-y-1/2 rounded-lg bg-cyan-500/15 transition-all duration-500 opacity-0"></div>
+                            </a>
+
+                            <!-- Version Control -->
+                            <a href="#versions" class="card-hover relative z-10 w-full overflow-hidden rounded-xl bg-white/[0.04] px-6 pb-6 pt-5 text-left transition-all duration-100 hover:bg-white/[0.08]">
+                                <div class="h-28 flex items-center justify-center mb-2">
+                                    <svg viewBox="0 0 120 80" class="h-20 opacity-60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="30" cy="40" r="12" fill="#f59e0b" opacity="0.15"/>
+                                        <circle cx="60" cy="40" r="12" fill="#f59e0b" opacity="0.2"/>
+                                        <circle cx="90" cy="40" r="12" fill="#f59e0b" opacity="0.25"/>
+                                        <line x1="42" y1="40" x2="48" y2="40" stroke="#f59e0b" stroke-width="2" opacity="0.3"/>
+                                        <line x1="72" y1="40" x2="78" y2="40" stroke="#f59e0b" stroke-width="2" opacity="0.3"/>
+                                    </svg>
+                                </div>
+                                <svg class="absolute text-2xl top-5 right-5 text-gray-400 -rotate-45 transition-all duration-300 arrow-icon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 32 32"><path d="M18 6l-1.4 1.4l7.5 7.6H3v2h21.1l-7.5 7.6L18 26l10-10z" fill="currentColor"></path></svg>
+                                <div class="mt-2">
+                                    <h2 class="mb-1 text-2xl font-bold">Version Control</h2>
+                                    <p class="text-pretty text-[22px]/7 font-semibold text-gray-400 opacity-80">Track model versions on-chain</p>
+                                </div>
+                                <div class="card-bg absolute left-1/2 top-1/2 -z-10 h-full w-full -translate-x-1/2 -translate-y-1/2 rounded-lg bg-amber-500/15 transition-all duration-500 opacity-0"></div>
+                            </a>
+
+                        </div>
+
+                        <!-- Column 3 -->
+                        <div class="flex flex-col gap-5">
+
+                            <!-- Decentralized -->
+                            <a href="#decentralized" class="card-hover relative z-10 w-full overflow-hidden rounded-xl bg-white/[0.04] px-6 pb-6 pt-5 text-left transition-all duration-100 hover:bg-white/[0.08]">
+                                <div class="h-36 flex items-center justify-center mb-2">
+                                    <svg viewBox="0 0 120 100" class="h-28 opacity-60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="60" cy="50" r="8" fill="#ec4899" opacity="0.3"/>
+                                        <circle cx="30" cy="30" r="8" fill="#ec4899" opacity="0.2"/>
+                                        <circle cx="90" cy="30" r="8" fill="#ec4899" opacity="0.2"/>
+                                        <circle cx="30" cy="70" r="8" fill="#ec4899" opacity="0.2"/>
+                                        <circle cx="90" cy="70" r="8" fill="#ec4899" opacity="0.2"/>
+                                        <line x1="38" y1="35" x2="52" y2="45" stroke="#ec4899" stroke-width="1.5" opacity="0.3"/>
+                                        <line x1="82" y1="35" x2="68" y2="45" stroke="#ec4899" stroke-width="1.5" opacity="0.3"/>
+                                        <line x1="38" y1="65" x2="52" y2="55" stroke="#ec4899" stroke-width="1.5" opacity="0.3"/>
+                                        <line x1="82" y1="65" x2="68" y2="55" stroke="#ec4899" stroke-width="1.5" opacity="0.3"/>
+                                    </svg>
+                                </div>
+                                <svg class="absolute text-2xl top-5 right-5 text-gray-400 -rotate-45 transition-all duration-300 arrow-icon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 32 32"><path d="M18 6l-1.4 1.4l7.5 7.6H3v2h21.1l-7.5 7.6L18 26l10-10z" fill="currentColor"></path></svg>
+                                <div class="mt-2">
+                                    <h2 class="mb-1 text-2xl font-bold">Decentralized</h2>
+                                    <p class="text-pretty text-[22px]/7 font-semibold text-gray-400 opacity-80">No central authority, full ownership</p>
+                                </div>
+                                <div class="card-bg absolute left-1/2 top-1/2 -z-10 h-full w-full -translate-x-1/2 -translate-y-1/2 rounded-lg bg-pink-500/15 transition-all duration-500 opacity-0"></div>
+                            </a>
+
+                            <!-- Open Source -->
+                            <a href="https://github.com/yourusername/agenc-model-registry" target="_blank" class="card-hover relative z-10 w-full overflow-hidden rounded-xl bg-white/[0.04] px-6 pb-6 pt-5 text-left transition-all duration-100 hover:bg-white/[0.08]">
+                                <div class="h-28 flex items-center justify-center mb-2">
+                                    <svg viewBox="0 0 120 80" class="h-20 opacity-60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="60" cy="40" r="25" stroke="#6b7280" stroke-width="2" opacity="0.3" fill="none"/>
+                                        <path d="M60 20C50 20 42 28 42 38C42 46 46 53 52 55C53 55 53 54 53 53V50C50 51 49 48 48 47C47 46 46 46 46 46C45 46 45 46 45 46C45 46 46 46 46 47C47 48 48 49 49 48C50 47 51 47 51 48V53C51 54 51 55 52 55C58 53 62 46 62 38C62 28 54 20 44 20" fill="#6b7280" opacity="0.2"/>
+                                    </svg>
+                                </div>
+                                <svg class="absolute text-2xl top-5 right-5 text-gray-400 -rotate-45 transition-all duration-300 arrow-icon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 32 32"><path d="M18 6l-1.4 1.4l7.5 7.6H3v2h21.1l-7.5 7.6L18 26l10-10z" fill="currentColor"></path></svg>
+                                <div class="mt-2">
+                                    <h2 class="mb-1 text-2xl font-bold">Open Source</h2>
+                                    <p class="text-pretty text-[22px]/7 font-semibold text-gray-400 opacity-80">Built in public, free to use and fork</p>
+                                </div>
+                                <div class="card-bg absolute left-1/2 top-1/2 -z-10 h-full w-full -translate-x-1/2 -translate-y-1/2 rounded-lg bg-gray-500/15 transition-all duration-500 opacity-0"></div>
+                            </a>
+
+                            <!-- Documentation -->
+                            <a href="#docs" class="card-hover relative z-10 w-full overflow-hidden rounded-xl bg-white/[0.04] px-6 pb-6 pt-5 text-left transition-all duration-100 hover:bg-white/[0.08]">
+                                <div class="h-36 flex items-center justify-center mb-2">
+                                    <svg viewBox="0 0 120 100" class="h-28 opacity-60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="30" y="20" width="60" height="70" rx="6" fill="#14b8a6" opacity="0.12"/>
+                                        <rect x="30" y="20" width="60" height="70" rx="6" stroke="#14b8a6" stroke-width="2" opacity="0.25"/>
+                                        <rect x="40" y="35" width="40" height="4" rx="1" fill="#14b8a6" opacity="0.3"/>
+                                        <rect x="40" y="45" width="35" height="3" rx="1" fill="#14b8a6" opacity="0.2"/>
+                                        <rect x="40" y="52" width="38" height="3" rx="1" fill="#14b8a6" opacity="0.2"/>
+                                        <rect x="40" y="59" width="30" height="3" rx="1" fill="#14b8a6" opacity="0.2"/>
+                                        <rect x="40" y="68" width="36" height="3" rx="1" fill="#14b8a6" opacity="0.2"/>
+                                        <rect x="40" y="75" width="28" height="3" rx="1" fill="#14b8a6" opacity="0.2"/>
+                                    </svg>
+                                </div>
+                                <svg class="absolute text-2xl top-5 right-5 text-gray-400 -rotate-45 transition-all duration-300 arrow-icon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 32 32"><path d="M18 6l-1.4 1.4l7.5 7.6H3v2h21.1l-7.5 7.6L18 26l10-10z" fill="currentColor"></path></svg>
+                                <div class="mt-2">
+                                    <h2 class="mb-1 text-2xl font-bold">Documentation</h2>
+                                    <p class="text-pretty text-[22px]/7 font-semibold text-gray-400 opacity-80">Learn how to integrate the registry</p>
+                                </div>
+                                <div class="card-bg absolute left-1/2 top-1/2 -z-10 h-full w-full -translate-x-1/2 -translate-y-1/2 rounded-lg bg-teal-500/15 transition-all duration-500 opacity-0"></div>
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Features Section -->
+                    <div class="mt-16 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white/5 rounded-lg p-6 border border-white/10">
+                            <h3 class="text-lg font-bold mb-3 text-blue-400">Program ID</h3>
+                            <code class="text-sm text-gray-300 font-mono break-all">3KyiM2oxJueFZmaUbFojSJ83pVkT1bWLiDLeUE8dJwY3</code>
+                            <p class="text-sm text-gray-500 mt-2">Deployed on Solana Devnet</p>
+                        </div>
+                        <div class="bg-white/5 rounded-lg p-6 border border-white/10">
+                            <h3 class="text-lg font-bold mb-3 text-blue-400">Status</h3>
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                                <span class="text-gray-300">Live and operational</span>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-2">Registry initialized and ready</p>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="mb-2 flex border-t border-white/10 md:h-14">
+                <nav class="max-w-7xl mx-auto w-full px-4 relative flex flex-col justify-between space-y-2 py-6 text-gray-400 max-md:*:self-start md:flex-row md:items-center md:space-y-0 md:py-0 md:text-sm">
+                    <a href="/" class="max-md:mb-4 max-md:mt-8 group flex-none max-md:order-last" aria-label="AgenC">
+                        <svg class="h-7 w-7 transition-transform group-hover:-translate-y-px" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="100" height="100" rx="20" fill="#3B82F6"/>
+                            <path d="M30 70L50 30L70 70H60L50 50L40 70H30Z" fill="white"/>
+                            <circle cx="50" cy="30" r="6" fill="white"/>
+                        </svg>
+                    </a>
+                    <a class="hover:underline" href="http://localhost:5173">Browse Models</a>
+                    <a class="hover:underline" href="http://localhost:5173/publish">Publish</a>
+                    <a class="hover:underline" href="https://explorer.solana.com/address/3KyiM2oxJueFZmaUbFojSJ83pVkT1bWLiDLeUE8dJwY3?cluster=devnet" target="_blank">Explorer</a>
+                    <a class="hover:underline" href="#docs">Docs</a>
+                    <span class="text-gray-600">|</span>
+                    <span class="text-gray-600">AgenC Model Registry v1.0</span>
+                </nav>
+            </footer>
+
+        </div>
+    </body>
+</html>

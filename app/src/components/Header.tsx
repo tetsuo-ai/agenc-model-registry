@@ -1,45 +1,33 @@
-import { Link, useLocation } from "react-router-dom";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { Link } from 'react-router-dom';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 
 export default function Header() {
-  const location = useLocation();
-
-  const navLinks = [
-    { to: "/", label: "Browse" },
-    { to: "/publish", label: "Publish" },
-  ];
-
   return (
-    <header className="border-b border-gray-800 bg-gray-950/80 backdrop-blur sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="text-xl font-bold text-white">
-              ModelRegistry
-            </span>
-            <span className="text-xs bg-emerald-600 text-white px-2 py-0.5 rounded-full font-mono">
-              on-chain
-            </span>
-          </Link>
-
-          <nav className="flex gap-1">
-            {navLinks.map((link) => (
+    <header className="border-b border-slate-700 bg-slate-800/50 backdrop-blur">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-8">
+            <Link to="/" className="flex items-center space-x-2">
+              <img src="/logo.svg" alt="AgenC" className="h-8 w-8" />
+              <h1 className="text-xl font-bold text-white">AgenC Model Registry</h1>
+            </Link>
+            <nav className="flex space-x-6">
               <Link
-                key={link.to}
-                to={link.to}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  location.pathname === link.to
-                    ? "bg-gray-800 text-white"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/50"
-                }`}
+                to="/"
+                className="text-slate-300 hover:text-white transition-colors font-medium"
               >
-                {link.label}
+                Browse
               </Link>
-            ))}
-          </nav>
+              <Link
+                to="/publish"
+                className="text-slate-300 hover:text-white transition-colors font-medium"
+              >
+                Publish
+              </Link>
+            </nav>
+          </div>
+          <WalletMultiButton />
         </div>
-
-        <WalletMultiButton className="!bg-gray-800 !rounded-lg !h-10 !text-sm" />
       </div>
     </header>
   );

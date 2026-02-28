@@ -1,23 +1,21 @@
-import { useCallback, useEffect, useState } from "react";
-import { useConnection, useAnchorWallet } from "@solana/wallet-adapter-react";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
+import { useState, useEffect } from 'react';
+import { useConnection, useAnchorWallet } from '@solana/wallet-adapter-react';
+import { PublicKey, SystemProgram } from '@solana/web3.js';
 import {
   getProgram,
   deriveConfigPda,
   deriveModelPda,
   deriveVersionPda,
-  sha256Hash,
-  hashToHex,
-  PROGRAM_ID,
-} from "../lib/program";
+  hashFile,
+} from '../lib/program';
 
 export interface OnChainModel {
   address: PublicKey;
   publisher: PublicKey;
   modelName: string;
-  weightsHash: string;
+  weightsHash: number[];
   metadataUri: string;
-  license: number;
+  license: any;
   versionCount: number;
   createdAt: number;
   updatedAt: number;
@@ -30,114 +28,91 @@ export function useRegistry() {
   const [models, setModels] = useState<OnChainModel[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchAllModels = useCallback(async () => {
+  const fetchAllModels = async () => {
+    if (!wallet) return;
+
     setLoading(true);
     try {
-      if (!wallet) {
-        // Fetch without wallet for browsing
-        const accounts = await connection.getProgramAccounts(PROGRAM_ID, {
-          filters: [
-            // Model discriminator (first 8 bytes) - we'll filter client-side
-            { dataSize: 283 }, // Model::SIZE
-          ],
-        });
-
-        // We can't decode without the program/IDL in read-only mode
-        // For now, use program with a dummy provider
-        setModels([]);
-        return;
-      }
-
       const program = getProgram(connection, wallet);
-      const allModels = await program.account.model.all();
+      const accounts = await (program.account as any).model.all();
 
-      setModels(
-        allModels.map((m) => ({
-          address: m.publicKey,
-          publisher: m.account.publisher,
-          modelName: m.account.modelName,
-          weightsHash: hashToHex(
-            new Uint8Array(m.account.weightsHash as number[])
-          ),
-          metadataUri: m.account.metadataUri,
-          license: Object.keys(m.account.license)[0] === "mit" ? 0 :
-                   Object.keys(m.account.license)[0] === "apache2" ? 1 :
-                   Object.keys(m.account.license)[0] === "gpl3" ? 2 :
-                   Object.keys(m.account.license)[0] === "creativeCommons" ? 3 : 4,
-          versionCount: m.account.versionCount,
-          createdAt: m.account.createdAt.toNumber(),
-          updatedAt: m.account.updatedAt.toNumber(),
-          isDeprecated: m.account.isDeprecated,
-        }))
-      );
-    } catch (err) {
-      console.error("Failed to fetch models:", err);
+      const modelData: OnChainModel[] = accounts.map((account: any) => ({
+        address: account.publicKey,
+        publisher: account.account.publisher,
+        modelName: account.account.modelName,
+        weightsHash: Array.from(account.account.weightsHash),
+        metadataUri: account.account.metadataUri,
+        license: account.account.license,
+        versionCount: account.account.versionCount,
+        createdAt: account.account.createdAt.toNumber(),
+        updatedAt: account.account.updatedAt.toNumber(),
+        isDeprecated: account.account.isDeprecated,
+      }));
+
+      setModels(modelData);
+    } catch (error) {
+      console.error('Error fetching models:', error);
     } finally {
       setLoading(false);
     }
-  }, [connection, wallet]);
+  };
 
-  const publishModel = useCallback(
-    async (
-      modelName: string,
-      weightsHash: Uint8Array,
-      metadataUri: string,
-      license: number
-    ) => {
-      if (!wallet) throw new Error("Wallet not connected");
+  useEffect(() => {
+    fetchAllModels();
+  }, [wallet?.publicKey]);
 
-      const program = getProgram(connection, wallet);
-      const [configPda] = deriveConfigPda();
-      const [modelPda] = deriveModelPda(wallet.publicKey, modelName);
-      const [versionPda] = deriveVersionPda(modelPda, 1);
+  const publishModel = async (
+    modelName: string,
+    weightsHash: Uint8Array,
+    metadataUri: string,
+    license: number
+  ) => {
+    if (!wallet) throw new Error('Wallet not connected');
 
-      const tx = await program.methods
-        .publishModel(modelName, Array.from(weightsHash), metadataUri, license)
-        .accounts({
-          config: configPda,
-          model: modelPda,
-          firstVersion: versionPda,
-          publisher: wallet.publicKey,
-          systemProgram: SystemProgram.programId,
-        })
-        .rpc();
+    const program = getProgram(connection, wallet);
+    const [configPda] = deriveConfigPda();
+    const [modelPda] = deriveModelPda(wallet.publicKey, modelName);
+    const [firstVersionPda] = deriveVersionPda(modelPda, 1);
 
-      return { tx, modelPda };
-    },
-    [connection, wallet]
-  );
+    const tx = await (program.methods as any)
+      .publishModel(modelName, Array.from(weightsHash), metadataUri, license)
+      .accounts({
+        model: modelPda,
+        firstVersion: firstVersionPda,
+        config: configPda,
+        publisher: wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
 
-  const addVersion = useCallback(
-    async (
-      modelPda: PublicKey,
-      weightsHash: Uint8Array,
-      metadataUri: string
-    ) => {
-      if (!wallet) throw new Error("Wallet not connected");
+    await fetchAllModels();
+    return { tx, modelPda };
+  };
 
-      const program = getProgram(connection, wallet);
-      const [configPda] = deriveConfigPda();
+  const addVersion = async (modelPda: PublicKey, weightsHash: Uint8Array, metadataUri: string) => {
+    if (!wallet) throw new Error('Wallet not connected');
 
-      // Fetch current model to get next version number
-      const model = await program.account.model.fetch(modelPda);
-      const nextVersion = model.versionCount + 1;
-      const [versionPda] = deriveVersionPda(modelPda, nextVersion);
+    const program = getProgram(connection, wallet);
+    const modelAccount = await (program.account as any).model.fetch(modelPda);
+    const newVersion = modelAccount.versionCount + 1;
 
-      const tx = await program.methods
-        .addVersion(Array.from(weightsHash), metadataUri)
-        .accounts({
-          config: configPda,
-          model: modelPda,
-          version: versionPda,
-          publisher: wallet.publicKey,
-          systemProgram: SystemProgram.programId,
-        })
-        .rpc();
+    const [configPda] = deriveConfigPda();
+    const [newVersionPda] = deriveVersionPda(modelPda, newVersion);
 
-      return tx;
-    },
-    [connection, wallet]
-  );
+    const tx = await (program.methods as any)
+      .addVersion(Array.from(weightsHash), metadataUri)
+      .accounts({
+        model: modelPda,
+        newVersion: newVersionPda,
+        config: configPda,
+        publisher: wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    await fetchAllModels();
+    return { tx, versionPda: newVersionPda };
+  };
 
   return {
     models,
@@ -145,11 +120,6 @@ export function useRegistry() {
     fetchAllModels,
     publishModel,
     addVersion,
+    hashFile,
   };
-}
-
-// Hash a file in the browser
-export async function hashFile(file: File): Promise<Uint8Array> {
-  const buffer = await file.arrayBuffer();
-  return sha256Hash(buffer);
 }

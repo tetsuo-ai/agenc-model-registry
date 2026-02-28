@@ -1,51 +1,63 @@
-interface Props {
-  step: number;
-  steps: string[];
-  error?: string;
+interface UploadProgressProps {
+  step: 'idle' | 'hashing' | 'uploading' | 'registering' | 'done';
 }
 
-export default function UploadProgress({ step, steps, error }: Props) {
-  return (
-    <div className="space-y-2">
-      {steps.map((label, i) => {
-        const isActive = i === step;
-        const isDone = i < step;
-        const isFuture = i > step;
+const STEPS = [
+  { key: 'hashing', label: 'Hashing weights' },
+  { key: 'uploading', label: 'Uploading metadata' },
+  { key: 'registering', label: 'Registering on-chain' },
+  { key: 'done', label: 'Complete' },
+];
 
-        return (
-          <div
-            key={i}
-            className={`flex items-center gap-3 text-sm ${
-              isActive
-                ? "text-emerald-400"
-                : isDone
-                ? "text-gray-500"
-                : "text-gray-700"
-            }`}
-          >
-            <div
-              className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border ${
-                isActive
-                  ? "border-emerald-400 bg-emerald-400/10 animate-pulse"
-                  : isDone
-                  ? "border-gray-600 bg-gray-800"
-                  : "border-gray-800"
-              }`}
-            >
-              {isDone ? "\u2713" : i + 1}
+export default function UploadProgress({ step }: UploadProgressProps) {
+  if (step === 'idle') return null;
+
+  const currentStepIndex = STEPS.findIndex((s) => s.key === step);
+
+  return (
+    <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
+      <h3 className="text-lg font-semibold text-white mb-4">Publishing Model</h3>
+      <div className="space-y-3">
+        {STEPS.map((s, index) => {
+          const isComplete = index < currentStepIndex || step === 'done';
+          const isActive = s.key === step;
+
+          return (
+            <div key={s.key} className="flex items-center gap-3">
+              <div
+                className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                  isComplete
+                    ? 'bg-green-500'
+                    : isActive
+                    ? 'bg-blue-500 animate-pulse'
+                    : 'bg-slate-700'
+                }`}
+              >
+                {isComplete && (
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path d="M5 13l4 4L19 7"></path>
+                  </svg>
+                )}
+              </div>
+              <span
+                className={`text-sm ${
+                  isComplete || isActive ? 'text-white font-medium' : 'text-slate-500'
+                }`}
+              >
+                {s.label}
+              </span>
             </div>
-            <span>{label}</span>
-            {isActive && (
-              <span className="text-emerald-400 animate-pulse">...</span>
-            )}
-          </div>
-        );
-      })}
-      {error && (
-        <div className="mt-2 text-red-400 text-sm bg-red-900/20 border border-red-800 rounded p-2">
-          {error}
-        </div>
-      )}
+          );
+        })}
+      </div>
     </div>
   );
 }

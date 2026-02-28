@@ -1,128 +1,316 @@
-import { Program, AnchorProvider, Idl } from "@coral-xyz/anchor";
-import { Connection, PublicKey } from "@solana/web3.js";
-import { AnchorWallet } from "@solana/wallet-adapter-react";
-import idl from "../idl.json";
+import { AnchorProvider, Program } from '@coral-xyz/anchor';
+import { Connection, PublicKey } from '@solana/web3.js';
+import type { AnchorWallet } from '@solana/wallet-adapter-react';
 
-export const PROGRAM_ID = new PublicKey(
-  "B6nXK6Cuxbzp8muFFhZSoJqhSAL7BeNiH2bHiwAL5zk7"
-);
+// Program ID from declare_id! in lib.rs
+export const PROGRAM_ID = new PublicKey('3KyiM2oxJueFZmaUbFojSJ83pVkT1bWLiDLeUE8dJwY3');
+
+// IDL type (we'll create a minimal version since we can't generate it properly)
+const IDL = {
+  version: '0.1.0',
+  name: 'agenc_model_registry',
+  instructions: [
+    {
+      name: 'initialize',
+      accounts: [
+        { name: 'config', isMut: true, isSigner: false },
+        { name: 'authority', isMut: true, isSigner: true },
+        { name: 'systemProgram', isMut: false, isSigner: false },
+      ],
+      args: [],
+    },
+    {
+      name: 'publishModel',
+      accounts: [
+        { name: 'model', isMut: true, isSigner: false },
+        { name: 'firstVersion', isMut: true, isSigner: false },
+        { name: 'config', isMut: true, isSigner: false },
+        { name: 'publisher', isMut: true, isSigner: true },
+        { name: 'systemProgram', isMut: false, isSigner: false },
+      ],
+      args: [
+        { name: 'modelName', type: 'string' },
+        { name: 'weightsHash', type: { array: ['u8', 32] } },
+        { name: 'metadataUri', type: 'string' },
+        { name: 'license', type: 'u8' },
+      ],
+    },
+    {
+      name: 'addVersion',
+      accounts: [
+        { name: 'model', isMut: true, isSigner: false },
+        { name: 'newVersion', isMut: true, isSigner: false },
+        { name: 'config', isMut: true, isSigner: false },
+        { name: 'publisher', isMut: true, isSigner: true },
+        { name: 'systemProgram', isMut: false, isSigner: false },
+      ],
+      args: [
+        { name: 'weightsHash', type: { array: ['u8', 32] } },
+        { name: 'metadataUri', type: 'string' },
+      ],
+    },
+    {
+      name: 'updateMetadata',
+      accounts: [
+        { name: 'model', isMut: true, isSigner: false },
+        { name: 'publisher', isMut: false, isSigner: true },
+      ],
+      args: [{ name: 'newMetadataUri', type: 'string' }],
+    },
+    {
+      name: 'deprecateModel',
+      accounts: [
+        { name: 'model', isMut: true, isSigner: false },
+        { name: 'publisher', isMut: false, isSigner: true },
+      ],
+      args: [],
+    },
+    {
+      name: 'transferOwnership',
+      accounts: [
+        { name: 'model', isMut: true, isSigner: false },
+        { name: 'publisher', isMut: false, isSigner: true },
+      ],
+      args: [{ name: 'newPublisher', type: 'publicKey' }],
+    },
+  ],
+  accounts: [
+    {
+      name: 'RegistryConfig',
+      type: {
+        kind: 'struct',
+        fields: [
+          { name: 'authority', type: 'publicKey' },
+          { name: 'totalModels', type: 'u64' },
+          { name: 'totalVersions', type: 'u64' },
+          { name: 'bump', type: 'u8' },
+        ],
+      },
+    },
+    {
+      name: 'Model',
+      type: {
+        kind: 'struct',
+        fields: [
+          { name: 'publisher', type: 'publicKey' },
+          { name: 'modelName', type: 'string' },
+          { name: 'weightsHash', type: { array: ['u8', 32] } },
+          { name: 'metadataUri', type: 'string' },
+          { name: 'license', type: { defined: 'License' } },
+          { name: 'versionCount', type: 'u32' },
+          { name: 'createdAt', type: 'i64' },
+          { name: 'updatedAt', type: 'i64' },
+          { name: 'isDeprecated', type: 'bool' },
+          { name: 'bump', type: 'u8' },
+        ],
+      },
+    },
+    {
+      name: 'ModelVersion',
+      type: {
+        kind: 'struct',
+        fields: [
+          { name: 'model', type: 'publicKey' },
+          { name: 'version', type: 'u32' },
+          { name: 'weightsHash', type: { array: ['u8', 32] } },
+          { name: 'metadataUri', type: 'string' },
+          { name: 'createdAt', type: 'i64' },
+          { name: 'bump', type: 'u8' },
+        ],
+      },
+    },
+  ],
+  types: [
+    {
+      name: 'License',
+      type: {
+        kind: 'enum',
+        variants: [
+          { name: 'MIT' },
+          { name: 'Apache2' },
+          { name: 'GPL3' },
+          { name: 'CreativeCommons' },
+          { name: 'Custom' },
+        ],
+      },
+    },
+  ],
+  events: [],
+};
 
 export function getProgram(connection: Connection, wallet: AnchorWallet) {
-  const provider = new AnchorProvider(connection, wallet, {
-    commitment: "confirmed",
-  });
-  return new Program(idl as Idl, PROGRAM_ID, provider);
+  const provider = new AnchorProvider(connection, wallet, {});
+  return new Program(IDL as any, provider);
 }
 
+// PDA derivation functions
 export function deriveConfigPda(): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync([Buffer.from('config')], PROGRAM_ID);
+}
+
+export function deriveModelPda(publisher: PublicKey, modelName: string): [PublicKey, number] {
+  const nameHash = sha256Hash(new TextEncoder().encode(modelName));
   return PublicKey.findProgramAddressSync(
-    [Buffer.from("config")],
+    [Buffer.from('model'), publisher.toBuffer(), nameHash],
     PROGRAM_ID
   );
 }
 
-export function deriveModelPda(
-  publisher: PublicKey,
-  modelName: string
-): [PublicKey, number] {
-  const nameHash = sha256Bytes(modelName);
+export function deriveVersionPda(modelPda: PublicKey, version: number): [PublicKey, number] {
+  const versionBuffer = Buffer.alloc(4);
+  versionBuffer.writeUInt32LE(version, 0);
   return PublicKey.findProgramAddressSync(
-    [Buffer.from("model"), publisher.toBuffer(), nameHash],
+    [Buffer.from('version'), modelPda.toBuffer(), versionBuffer],
     PROGRAM_ID
   );
 }
 
-export function deriveVersionPda(
-  modelPda: PublicKey,
-  version: number
-): [PublicKey, number] {
-  const versionBytes = Buffer.alloc(4);
-  versionBytes.writeUInt32LE(version);
-  return PublicKey.findProgramAddressSync(
-    [Buffer.from("version"), modelPda.toBuffer(), versionBytes],
-    PROGRAM_ID
-  );
-}
+// Browser-compatible SHA-256 implementation
+export function sha256Hash(data: Uint8Array): Uint8Array {
+  // Simple JS implementation of SHA-256 for browser compatibility
+  // This matches the Solana runtime's hash() function behavior
 
-// SHA-256 using Web Crypto (sync wrapper using precomputed)
-function sha256Bytes(input: string): Buffer {
-  // Use a simple JS SHA-256 for PDA derivation (deterministic)
-  const encoder = new TextEncoder();
-  const data = encoder.encode(input);
-  // Simple SHA-256 implementation for browser
-  return Buffer.from(sha256Simple(data));
-}
-
-// Minimal SHA-256 for PDA derivation in browser
-function sha256Simple(data: Uint8Array): Uint8Array {
-  const K = new Uint32Array([
-    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1,
-    0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
-    0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786,
-    0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
-    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147,
-    0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
-    0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b,
-    0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
-    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a,
-    0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
-    0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
-  ]);
-  let h0 = 0x6a09e667, h1 = 0xbb67ae85, h2 = 0x3c6ef372, h3 = 0xa54ff53a;
-  let h4 = 0x510e527f, h5 = 0x9b05688c, h6 = 0x1f83d9ab, h7 = 0x5be0cd19;
-  const len = data.length;
-  const bitLen = len * 8;
-  const padLen = ((len + 8) >> 6) + 1;
-  const blocks = new Uint8Array(padLen * 64);
-  blocks.set(data);
-  blocks[len] = 0x80;
-  const dv = new DataView(blocks.buffer);
-  dv.setUint32(padLen * 64 - 4, bitLen, false);
-  const w = new Uint32Array(64);
-  for (let i = 0; i < padLen; i++) {
-    for (let j = 0; j < 16; j++) w[j] = dv.getUint32(i * 64 + j * 4, false);
-    for (let j = 16; j < 64; j++) {
-      const s0 = (ror(w[j-15],7)) ^ (ror(w[j-15],18)) ^ (w[j-15] >>> 3);
-      const s1 = (ror(w[j-2],17)) ^ (ror(w[j-2],19)) ^ (w[j-2] >>> 10);
-      w[j] = (w[j-16] + s0 + w[j-7] + s1) | 0;
-    }
-    let a=h0,b=h1,c=h2,d=h3,e=h4,f=h5,g=h6,h=h7;
-    for (let j = 0; j < 64; j++) {
-      const S1 = (ror(e,6)) ^ (ror(e,11)) ^ (ror(e,25));
-      const ch = (e & f) ^ (~e & g);
-      const t1 = (h + S1 + ch + K[j] + w[j]) | 0;
-      const S0 = (ror(a,2)) ^ (ror(a,13)) ^ (ror(a,22));
-      const maj = (a & b) ^ (a & c) ^ (b & c);
-      const t2 = (S0 + maj) | 0;
-      h=g; g=f; f=e; e=(d+t1)|0; d=c; c=b; b=a; a=(t1+t2)|0;
-    }
-    h0=(h0+a)|0; h1=(h1+b)|0; h2=(h2+c)|0; h3=(h3+d)|0;
-    h4=(h4+e)|0; h5=(h5+f)|0; h6=(h6+g)|0; h7=(h7+h)|0;
+  function rotr(n: number, x: number): number {
+    return (x >>> n) | (x << (32 - n));
   }
-  const out = new Uint8Array(32);
-  new DataView(out.buffer).setUint32(0,h0,false);
-  new DataView(out.buffer).setUint32(4,h1,false);
-  new DataView(out.buffer).setUint32(8,h2,false);
-  new DataView(out.buffer).setUint32(12,h3,false);
-  new DataView(out.buffer).setUint32(16,h4,false);
-  new DataView(out.buffer).setUint32(20,h5,false);
-  new DataView(out.buffer).setUint32(24,h6,false);
-  new DataView(out.buffer).setUint32(28,h7,false);
-  return out;
+
+  function ch(x: number, y: number, z: number): number {
+    return (x & y) ^ (~x & z);
+  }
+
+  function maj(x: number, y: number, z: number): number {
+    return (x & y) ^ (x & z) ^ (y & z);
+  }
+
+  function sigma0(x: number): number {
+    return rotr(2, x) ^ rotr(13, x) ^ rotr(22, x);
+  }
+
+  function sigma1(x: number): number {
+    return rotr(6, x) ^ rotr(11, x) ^ rotr(25, x);
+  }
+
+  function gamma0(x: number): number {
+    return rotr(7, x) ^ rotr(18, x) ^ (x >>> 3);
+  }
+
+  function gamma1(x: number): number {
+    return rotr(17, x) ^ rotr(19, x) ^ (x >>> 10);
+  }
+
+  const K = [
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+  ];
+
+  // Padding
+  const msgLen = data.length;
+  const padLen = msgLen + 8;
+  const blockCount = Math.ceil(padLen / 64) * 64;
+  const padded = new Uint8Array(blockCount);
+  padded.set(data);
+  padded[msgLen] = 0x80;
+
+  // Append length in bits as big-endian
+  const bitLen = msgLen * 8;
+  for (let i = 0; i < 8; i++) {
+    padded[blockCount - 1 - i] = (bitLen >>> (i * 8)) & 0xff;
+  }
+
+  // Initial hash values
+  let h0 = 0x6a09e667;
+  let h1 = 0xbb67ae85;
+  let h2 = 0x3c6ef372;
+  let h3 = 0xa54ff53a;
+  let h4 = 0x510e527f;
+  let h5 = 0x9b05688c;
+  let h6 = 0x1f83d9ab;
+  let h7 = 0x5be0cd19;
+
+  // Process blocks
+  for (let offset = 0; offset < blockCount; offset += 64) {
+    const w = new Array(64);
+
+    // Prepare message schedule
+    for (let i = 0; i < 16; i++) {
+      w[i] =
+        (padded[offset + i * 4] << 24) |
+        (padded[offset + i * 4 + 1] << 16) |
+        (padded[offset + i * 4 + 2] << 8) |
+        padded[offset + i * 4 + 3];
+    }
+
+    for (let i = 16; i < 64; i++) {
+      w[i] = (gamma1(w[i - 2]) + w[i - 7] + gamma0(w[i - 15]) + w[i - 16]) | 0;
+    }
+
+    // Initialize working variables
+    let a = h0;
+    let b = h1;
+    let c = h2;
+    let d = h3;
+    let e = h4;
+    let f = h5;
+    let g = h6;
+    let h = h7;
+
+    // Main loop
+    for (let i = 0; i < 64; i++) {
+      const t1 = (h + sigma1(e) + ch(e, f, g) + K[i] + w[i]) | 0;
+      const t2 = (sigma0(a) + maj(a, b, c)) | 0;
+      h = g;
+      g = f;
+      f = e;
+      e = (d + t1) | 0;
+      d = c;
+      c = b;
+      b = a;
+      a = (t1 + t2) | 0;
+    }
+
+    // Update hash values
+    h0 = (h0 + a) | 0;
+    h1 = (h1 + b) | 0;
+    h2 = (h2 + c) | 0;
+    h3 = (h3 + d) | 0;
+    h4 = (h4 + e) | 0;
+    h5 = (h5 + f) | 0;
+    h6 = (h6 + g) | 0;
+    h7 = (h7 + h) | 0;
+  }
+
+  // Produce final hash
+  const hash = new Uint8Array(32);
+  const hashView = new DataView(hash.buffer);
+  hashView.setUint32(0, h0, false);
+  hashView.setUint32(4, h1, false);
+  hashView.setUint32(8, h2, false);
+  hashView.setUint32(12, h3, false);
+  hashView.setUint32(16, h4, false);
+  hashView.setUint32(20, h5, false);
+  hashView.setUint32(24, h6, false);
+  hashView.setUint32(28, h7, false);
+
+  return hash;
 }
 
-function ror(x: number, n: number): number {
-  return (x >>> n) | (x << (32 - n));
-}
-
-// Async version using Web Crypto API (for hashing files)
-export async function sha256Hash(data: ArrayBuffer): Promise<Uint8Array> {
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  return new Uint8Array(hashBuffer);
-}
-
-export function hashToHex(hash: Uint8Array): string {
-  return Array.from(hash)
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+// Hash file in browser
+export async function hashFile(file: File): Promise<Uint8Array> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const arrayBuffer = e.target?.result as ArrayBuffer;
+      const uint8Array = new Uint8Array(arrayBuffer);
+      const hash = sha256Hash(uint8Array);
+      resolve(hash);
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
 }

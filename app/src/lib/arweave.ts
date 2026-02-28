@@ -2,83 +2,71 @@ export interface ModelMetadata {
   name: string;
   description: string;
   framework: string;
-  architecture?: string;
-  parameters?: number;
   license: string;
-  readme?: string;
   weights: {
     sha256: string;
-    size_bytes: number;
-    download_urls: string[];
-    arweave_tx?: string;
+    size: number;
+    urls: string[];
   };
   training?: {
     dataset?: string;
-    hardware?: string;
+    epochs?: number;
+    hyperparameters?: Record<string, any>;
   };
+  readme?: string;
 }
 
-/**
- * Upload metadata JSON to Arweave via Irys.
- * For devnet, we simulate by returning a placeholder URI.
- * In production, this uses @irys/web-upload with Solana wallet.
- */
-export async function uploadMetadata(
-  metadata: ModelMetadata,
-  _wallet?: any
-): Promise<string> {
-  // For devnet/development: encode metadata as a data URI
-  // This keeps the metadata accessible without requiring Arweave funding
-  // In production, replace with actual Irys upload
-  const json = JSON.stringify(metadata, null, 2);
-  const encoded = btoa(json);
-
-  // Return a data URI that the frontend can decode
-  // In production this would be: https://arweave.net/<tx-id>
-  return `data:application/json;base64,${encoded}`;
+// For devnet, we'll use data URIs instead of actual Arweave uploads
+export async function uploadMetadata(metadata: ModelMetadata): Promise<string> {
+  // Convert metadata to JSON and create a data URI
+  const jsonStr = JSON.stringify(metadata, null, 2);
+  const base64 = btoa(jsonStr);
+  return `data:application/json;base64,${base64}`;
 }
 
-/**
- * Production Irys upload (uncomment when ready for mainnet)
- */
-/*
-import { WebUploader } from "@irys/web-upload";
-import { WebSolana } from "@irys/web-upload-solana";
-
-export async function uploadMetadataToArweave(
-  metadata: ModelMetadata,
-  wallet: any
-): Promise<string> {
-  const irys = await WebUploader(WebSolana).withProvider(wallet);
-  const data = JSON.stringify(metadata, null, 2);
-
-  const tx = await irys.upload(data, {
-    tags: [
-      { name: "Content-Type", value: "application/json" },
-      { name: "App-Name", value: "ModelRegistry" },
-      { name: "Model-Name", value: metadata.name },
-    ],
-  });
-
-  return `https://arweave.net/${tx.id}`;
-}
-*/
-
-/**
- * Fetch metadata from a URI (supports both Arweave URLs and data URIs)
- */
-export async function fetchMetadata(
-  uri: string
-): Promise<ModelMetadata | null> {
-  try {
-    if (uri.startsWith("data:application/json;base64,")) {
-      const encoded = uri.replace("data:application/json;base64,", "");
-      return JSON.parse(atob(encoded));
+export async function fetchMetadata(uri: string): Promise<ModelMetadata> {
+  if (uri.startsWith('data:')) {
+    // Handle data URI
+    const base64 = uri.split(',')[1];
+    const jsonStr = atob(base64);
+    return JSON.parse(jsonStr);
+  } else if (uri.startsWith('https://arweave.net/') || uri.startsWith('ar://')) {
+    // Handle Arweave URL
+    const arweaveUrl = uri.startsWith('ar://') ? uri.replace('ar://', 'https://arweave.net/') : uri;
+    const response = await fetch(arweaveUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch metadata: ${response.statusText}`);
     }
-    const res = await fetch(uri);
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
+    return await response.json();
+  } else {
+    // Handle generic URL
+    const response = await fetch(uri);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch metadata: ${response.statusText}`);
+    }
+    return await response.json();
   }
 }
+
+// Production Arweave/Irys implementation (commented out for devnet)
+/*
+import { Irys } from '@irys/sdk';
+
+async function uploadToIrys(metadata: ModelMetadata, wallet: any): Promise<string> {
+  const irys = new Irys({
+    url: 'https://node2.irys.xyz',
+    token: 'solana',
+    wallet: { rpcUrl: 'https://api.devnet.solana.com', name: 'wallet-adapter', provider: wallet },
+  });
+
+  const jsonStr = JSON.stringify(metadata, null, 2);
+  const tags = [
+    { name: 'Content-Type', value: 'application/json' },
+    { name: 'App-Name', value: 'AgenC-Model-Registry' },
+    { name: 'Model-Name', value: metadata.name },
+  ];
+
+  const receipt = await irys.upload(jsonStr, { tags });
+  return `https://arweave.net/${receipt.id}`;
+}
+*/
