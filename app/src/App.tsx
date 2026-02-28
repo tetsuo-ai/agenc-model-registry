@@ -9,6 +9,11 @@ import Header from './components/Header';
 import Browse from './pages/Browse';
 import Publish from './pages/Publish';
 import ModelDetail from './pages/ModelDetail';
+import AgentBrowse from './pages/AgentBrowse';
+import AgentDetail from './pages/AgentDetail';
+import AgentRegister from './pages/AgentRegister';
+import TaskBrowse from './pages/TaskBrowse';
+import TaskDetail from './pages/TaskDetail';
 
 function App() {
   const endpoint = useMemo(() => clusterApiUrl('devnet'), []);
@@ -26,6 +31,11 @@ function App() {
                   <Route path="/" element={<Browse />} />
                   <Route path="/publish" element={<Publish />} />
                   <Route path="/model/:address" element={<ModelDetail />} />
+                  <Route path="/agents" element={<AgentBrowse />} />
+                  <Route path="/agents/register" element={<AgentRegister />} />
+                  <Route path="/agent/:address" element={<AgentDetail />} />
+                  <Route path="/tasks" element={<TaskBrowse />} />
+                  <Route path="/task/:address" element={<TaskDetail />} />
                 </Routes>
               </main>
             </div>

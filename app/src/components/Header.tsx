@@ -9,14 +9,26 @@ export default function Header() {
           <div className="flex items-center space-x-8">
             <Link to="/" className="flex items-center space-x-2">
               <img src="/logo.svg" alt="AgenC" className="h-8 w-8" />
-              <h1 className="text-xl font-bold text-white">AgenC Model Registry</h1>
+              <h1 className="text-xl font-bold text-white">AgenC Registry</h1>
             </Link>
             <nav className="flex space-x-6">
               <Link
                 to="/"
                 className="text-slate-300 hover:text-white transition-colors font-medium"
               >
-                Browse
+                Models
+              </Link>
+              <Link
+                to="/agents"
+                className="text-slate-300 hover:text-white transition-colors font-medium"
+              >
+                Agents
+              </Link>
+              <Link
+                to="/tasks"
+                className="text-slate-300 hover:text-white transition-colors font-medium"
+              >
+                Tasks
               </Link>
               <Link
                 to="/publish"
