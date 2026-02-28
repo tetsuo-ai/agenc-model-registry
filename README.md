@@ -68,4 +68,4 @@ anchor test
 
 ## License
 
-MIT
+GPL-3.0 - see LICENSE for details.
